@@ -1,35 +1,40 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include <string>
 
-#define CURSE_CHAR 'c'
+#define CURSE_CHAR L'₻'
 
-int converter(const char* path) {
-    // Open the input file for reading
-    std::ifstream input_file(path);
-    if (!input_file.is_open()) {
-        std::cerr << "Error: failed to open input file\n";
+int converter(const char* path, wchar_t curse_char) {
+    // Open files with UTF-8 encoding
+    std::ifstream inputFile(path, std::ios::in | std::ios::binary);
+    std::ofstream outputFile("output.txt", std::ios::out | std::ios::binary);
+
+    // Make sure files were opened successfully
+    if (!inputFile.is_open()) {
+        std::cerr << "Error opening input file\n";
+        return 1;
+    }
+    if (!outputFile.is_open()) {
+        std::cerr << "Error opening output file\n";
         return 1;
     }
 
-    // Open the output file for writing
-    std::ofstream output_file("output.txt");
-    if (!output_file.is_open()) {
-        std::cerr << "Error: failed to open output file\n";
-        return 1;
+    std::string line;
+    while (std::getline(inputFile, line)) {
+        // Do whatever processing you need on the line here
+        line += curse_char;
+        line += "\n";
+
+        // Write the line to the output file
+        outputFile << line;
     }
 
-    // Read from the input file and write to the output file
-    char c;
-    while (input_file.get(c)) {
-        output_file.put(c);
-    }
+    // Close files when done
+    inputFile.close();
+    outputFile.close();
 
-    // Close the input and output files
-    input_file.close();
-    output_file.close();
-
-    std::cout << "File copied successfully\n";
+    std::cout << "File converted successfully";
 
     return 0;
 }
@@ -44,14 +49,13 @@ int main(int argc, char const *argv[])
     }
 
     // sets curse_char to default unless optional_character argument is set and valid
-    // TODO: does not handle unicode right now
-    char curse_char = CURSE_CHAR;
-    char input_char = *argv[2];
-    if(argc == 3 && input_char != '\0' && input_char != ' ' && input_char != '\t') {
-        curse_char = input_char;
+    // TODO: does not handle unicode right now, must debug
+    wchar_t curse_char = CURSE_CHAR;
+    if(argc == 3) {
+        curse_char = *argv[2];
     }
 
-    converter(argv[1]);
+    converter(argv[1], curse_char);
     
     return 0;
 }
