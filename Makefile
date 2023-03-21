@@ -1,14 +1,10 @@
-.PHONY: all clean 
+CC=clang++
+CFLAGS=-fextended-identifiers -w
 
-# all: clean format reverse_test
-all: clean example
+all: example
+
+example: example.cpp
+	$(CC) $(CFLAGS) example.cpp -o example
 
 clean:
-	rm -f example example.o
-
-CFLAGS = -Wall -Werror -O3
-%: %.c
-	gcc $(CFLAGS) -c $< -o $@
-
-example: example.o
-	gcc $(CFLAGS) $^ -o $@
+	rm -f example
