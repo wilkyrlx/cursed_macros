@@ -6,6 +6,7 @@ using namespace std;
 #include <string>
 #include <map>
 #include <regex>
+#include <list>
 
 #define CURSE_CHAR L'₻'
 
@@ -13,38 +14,6 @@ using namespace std;
 std::map<std::string, int> token_map;   // maps strings to a unique integer
 int curr_count;     // in token_map, each string requires a unique integer. This is it
 
-
-/*  Splits a line into tokens and adds them to the map if they do not exist in it yet
-    For example:
-        for(int i=0;i<=10;i++){return null;} -> for ( int i = 0 ; i <= 10 ; i ++ ) { return null ; }
-        std::string test_variable="test"; -> std :: string test_variable = "test" ;
-*/
-string map_line(string input_line) {
-    // TODO: finish this
-    /* Pseudocode:
-        1. use regex to get words; \w+
-        2. add a space before and after each word
-        3. get all groups of chars separated by spaces \S+
-        4a (simple). add each group to map and then convert
-        4b (efficient). check all groups of non-words, split into parts (maybe \W+)
-        5b. add each group to map, then convert
-   */
-    return input_line;
-}
-
-int regex_f() {
-    std::string input = "for(int i=0;i<=10;i++){return \"test h\";}";
-    
-    // equivalent to (\w+)|"(.?)"|'(.*?)'
-    std::regex pattern("(\\w+)|\"(.*?)\"|'(.*?)'");  // matches one or more word characters
-
-    std::string output = std::regex_replace(input, pattern, " $& ");  // add a space before and after each match
-
-    std::cout << "Input:  " << input << std::endl;
-    std::cout << "Output: " << output << std::endl;
-
-    return 0;
-}
 
 void put_token_map(string token) {
     // only adds to map if not already in map
@@ -54,6 +23,67 @@ void put_token_map(string token) {
     }
 }
 
+/*  
+    Adds a token to the map (put_token_map() ignores if it is already in the map)
+    and then calculates the "cursed" form of the token
+*/
+string curse_token(string token) {
+    put_token_map(token);   // tries to add to map, if does not exist
+    int hex_count = token_map[token];
+
+    // FIXME: this overflows with unicode characters
+    return std::string(hex_count, 'c');
+}
+
+/* Adds spaces to a line to create tokens. Does not split operators
+    Example:
+        Input:  for(int i=0;i<=10;i++){return 'test h';}
+        Output:  for ( int   i = 0 ; i <= 10 ; i ++){ return   'test h' ;}
+*/
+string tokenize_line_regex(string line) {
+    string test_input = "for(int i=0;i<=10;i++){return \"test h\";}";
+    string input = line;
+
+    // equivalent to (?:'|").*(?:'|")|(\w+)
+    // also consider (?:'|").*(?:'|")|(\S+)
+    std::regex pattern("(?:'|\").*(?:'|\")|(\\w+)");  // matches one or more word characters
+
+    string output = std::regex_replace(input, pattern, " $& ");  // add a space before and after each match
+
+    std::cout << "Input:  " << input << std::endl;
+    std::cout << "Output: " << output << std::endl;
+
+    return output;
+}
+
+// Converts a normal line into a cursed_char line
+string curse_line_regex(string line) {
+    string test_input = "for(int i=0;i<=10;i++){return \"test h\";}";
+    string input = line;
+
+    // equivalent to (?:'|").*(?:'|")|(\S+)
+    std::regex pattern("(?:'|\").*(?:'|\")|(\\S+)"); 
+
+    std::sregex_iterator it(input.begin(), input.end(), pattern); // create an iterator for all matches
+    std::sregex_iterator end;
+
+    std::list<std::string> matches; // list to store the matches
+
+    while (it != end) {
+        std::smatch match = *it; // get the match
+        matches.push_back(match.str()); // add the match to the list
+        ++it; // advance the iterator to the next match
+    }
+
+    string total_line = " ";
+    // print the list of matches
+    for (const auto& match : matches) {
+        total_line += curse_token(match) + " ";
+    }
+    std::cout << total_line;
+
+    return total_line;
+}
 
 // Initialize some basic tokens into the map
 int initialize_map() {
@@ -83,7 +113,9 @@ int converter(const char* path, wchar_t curse_char) {
     string line;
     while (std::getline(inputFile, line)) {
         // Do whatever processing you need on the line here
-        line += curse_char;
+        string tokenized_line = tokenize_line_regex(line);
+        string cursed_line = curse_line_regex(tokenized_line);
+        line = cursed_line;
         line += "\n";
 
         // Write the line to the output file
