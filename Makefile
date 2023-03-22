@@ -1,13 +1,16 @@
 CC=clang++
 CFLAGS=-fextended-identifiers -w
 
-all: example converter
+all: example converter output
 
-example: example.cpp
-	$(CC) $(CFLAGS) example.cpp -o example
+example: simple.cpp
+	$(CC) $(CFLAGS) simple.cpp -o example
+
+output: output.cpp
+	$(CC) $(CFLAGS) output.cpp -o output
 
 converter: converter.cpp
 	$(CC) $(CFLAGS) converter.cpp -o converter
 
 clean:
-	rm -f example converter
+	rm -f example converter output
