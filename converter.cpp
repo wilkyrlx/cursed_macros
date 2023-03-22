@@ -147,18 +147,18 @@ int converter(const char* path, wchar_t curse_char) {
     while (std::getline(inputFile, line)) {
         string check1 = "#define";
         string check2 = "#include";
-        if (line.find(check1) == string::npos || line.find(check2) == string::npos) {
+        if (!(line.find(check1) != string::npos || line.find(check2) != string::npos)) {
             // define or include was found not found, process the line
 
             // Process each line
             string tokenized_line = tokenize_line_regex(line);
             string cursed_line = curse_line_regex(tokenized_line);
             line = cursed_line;
-            line += "\n";
 
         }
         
         // Write the line to the output file 
+        line += "\n";
         outputFile << line;
     }
 
